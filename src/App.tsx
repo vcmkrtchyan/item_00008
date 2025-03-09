@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Trash2, PlusCircle, Clock, Pencil } from 'lucide-react';
+import { Trash2, PlusCircle, Clock, Pencil, XCircle } from 'lucide-react';
 
 // Define the Task type
 interface Task {
@@ -28,11 +28,38 @@ const ToDoListApp = () => {
   const [description, setDescription] = useState('');
   const [duration, setDuration] = useState('');
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState('');
+
+  // Load tasks from local storage on initial render
+  useEffect(() => {
+    const storedTasks = localStorage.getItem('tasks');
+    if (storedTasks) {
+      setTasks(JSON.parse(storedTasks));
+    }
+  }, []);
+
+  // Save tasks to local storage whenever tasks change
+  useEffect(() => {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }, [tasks]);
+
+  // Function to show modal
+  const showModal = (content: string) => {
+    setModalContent(content);
+    setIsModalOpen(true);
+  };
+
+  // Function to close modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalContent('');
+  };
 
   // Function to add a new task
   const addTask = () => {
     if (!title.trim() || !description.trim() || !duration.trim()) {
-      alert("Please fill in all fields.");
+      showModal("Please fill in all fields.");
       return;
     }
 
@@ -62,7 +89,7 @@ const ToDoListApp = () => {
   // Function to save edited task
   const saveEditedTask = () => {
     if (!title.trim() || !description.trim() || !duration.trim()) {
-      alert("Please fill in all fields.");
+      showModal("Please fill in all fields.");
       return;
     }
 
@@ -73,6 +100,12 @@ const ToDoListApp = () => {
                 : task
         )
     );
+    clearForm();
+    setEditingTaskId(null);
+  };
+
+  // Function to discard editing
+  const discardEdit = () => {
     clearForm();
     setEditingTaskId(null);
   };
@@ -123,14 +156,23 @@ const ToDoListApp = () => {
                   className="bg-black/20 text-white border-gray-700 placeholder:text-gray-400"
               />
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex gap-2">
               {editingTaskId ? (
-                  <Button
-                      onClick={saveEditedTask}
-                      className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 hover:text-blue-300 w-full"
-                  >
-                    Save Changes
-                  </Button>
+                  <>
+                    <Button
+                        onClick={saveEditedTask}
+                        className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 hover:text-blue-300 w-1/2"
+                    >
+                      Save
+                    </Button>
+                    <Button
+                        onClick={discardEdit}
+                        className="bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 hover:text-gray-300 w-1/2"
+                    >
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Discard
+                    </Button>
+                  </>
               ) : (
                   <Button
                       onClick={addTask}
@@ -190,6 +232,28 @@ const ToDoListApp = () => {
             )}
           </div>
         </div>
+
+        {/* Custom Modal */}
+        {isModalOpen && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <Card className="bg-white/5 backdrop-blur-md border border-white/10 shadow-lg w-full max-w-md">
+                <CardHeader>
+                  <CardTitle className="text-lg text-white">Alert</CardTitle>
+                </CardHeader>
+                <CardContent className="text-gray-300">
+                  {modalContent}
+                </CardContent>
+                <CardFooter>
+                  <Button
+                      onClick={closeModal}
+                      className="bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 hover:text-gray-300 w-full"
+                  >
+                    OK
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+        )}
       </div>
   );
 };
