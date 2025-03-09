@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -31,24 +31,10 @@ const ToDoListApp = () => {
   const [description, setDescription] = useState('');
   const [duration, setDuration] = useState('');
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const [titleError, setTitleError] = useState('');
   const [descriptionError, setDescriptionError] = useState('');
   const [durationError, setDurationError] = useState('');
-
-  // Function to show modal
-  const showModal = (content: string) => {
-    setModalContent(content);
-    setIsModalOpen(true);
-  };
-
-  // Function to close modal
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setModalContent('');
-  };
 
   // Function to add a new task
   const addTask = () => {
@@ -156,9 +142,12 @@ const ToDoListApp = () => {
   return (
       <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 sm:p-8">
         <div className="max-w-3xl mx-auto space-y-6">
-          <h1 className="text-3xl sm:text-4xl font-bold text-center text-white">
+          <h1
+              className="text-3xl sm:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-[#A3A0FF] to-[#5E7BFF]"
+          >
             To-Do List
           </h1>
+          <p className="text-center text-gray-400">Stay Organized, Get Things Done!</p>
 
           {/* Task Input Form */}
           <Card className="bg-white/5 backdrop-blur-md border border-white/10 shadow-lg">
@@ -258,7 +247,7 @@ const ToDoListApp = () => {
                       exit={{ opacity: 0 }}
                   >
                     <Card className="bg-white/5 backdrop-blur-md border border-white/10 shadow-lg">
-                      <CardContent className="text-center text-gray-400">
+                      <CardContent className="p-4 text-center text-gray-400">
                         No tasks yet. Add some tasks to get started!
                       </CardContent>
                     </Card>
@@ -271,39 +260,37 @@ const ToDoListApp = () => {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 10 }}
                           transition={{ duration: 0.2 }}
-                          className="group relative"
                       >
                         <Card
                             className="bg-white/5 backdrop-blur-md border border-white/10 shadow-lg"
                         >
-                          <CardHeader>
+                          <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle className="text-lg text-white">{task.title}</CardTitle>
-                            <CardDescription className="text-gray-400">{task.description}</CardDescription>
+                            <div className="flex gap-2">
+                              <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => startEditTask(task)}
+                                  className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded-full cursor-pointer"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeTask(task.id)}
+                                  className="text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-full cursor-pointer"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </CardHeader>
-                          <CardContent className="text-gray-300 cursor-pointer" onClick={() => startEditTask(task)}>
+                          <CardContent className="text-gray-300">
                             <div className="flex items-center gap-2">
                               <Clock className="h-4 w-4 text-gray-400" />
                               <span>{task.duration}</span>
                             </div>
                           </CardContent>
-                          <CardFooter className="flex justify-end gap-2 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => startEditTask(task)}
-                                className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 cursor-pointer"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => removeTask(task.id)}
-                                className="text-red-400 hover:text-red-300 hover:bg-red-500/20 cursor-pointer"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </CardFooter>
                         </Card>
                       </motion.div>
                   ))
@@ -329,27 +316,6 @@ const ToDoListApp = () => {
           </Tooltip>
         </TooltipProvider>
 
-        {/* Custom Modal */}
-        {isModalOpen && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <Card className="bg-white/5 backdrop-blur-md border border-white/10 shadow-lg w-full max-w-md">
-                <CardHeader>
-                  <CardTitle className="text-lg text-white">Alert</CardTitle>
-                </CardHeader>
-                <CardContent className="text-gray-300">
-                  {modalContent}
-                </CardContent>
-                <CardFooter>
-                  <Button
-                      onClick={closeModal}
-                      className="bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 hover:text-gray-300 w-full"
-                  >
-                    OK
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
-        )}
       </div>
   );
 };
