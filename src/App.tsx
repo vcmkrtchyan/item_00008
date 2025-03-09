@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -10,7 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Trash2, PlusCircle, Clock, Pencil, XCircle } from 'lucide-react';
+import { Trash2, PlusCircle, Clock, Pencil, XCircle, ArrowUpCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
 
 // Define the Task type
 interface Task {
@@ -30,6 +33,10 @@ const ToDoListApp = () => {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [titleError, setTitleError] = useState('');
+  const [descriptionError, setDescriptionError] = useState('');
+  const [durationError, setDurationError] = useState('');
 
   // Function to show modal
   const showModal = (content: string) => {
@@ -45,8 +52,21 @@ const ToDoListApp = () => {
 
   // Function to add a new task
   const addTask = () => {
-    if (!title.trim() || !description.trim() || !duration.trim()) {
-      showModal("Please fill in all fields.");
+    let hasError = false;
+    if (!title.trim()) {
+      setTitleError("This field is required");
+      hasError = true;
+    }
+    if (!description.trim()) {
+      setDescriptionError("This field is required");
+      hasError = true;
+    }
+    if (!duration.trim()) {
+      setDurationError("This field is required");
+      hasError = true;
+    }
+
+    if (hasError) {
       return;
     }
 
@@ -71,12 +91,30 @@ const ToDoListApp = () => {
     setTitle(task.title);
     setDescription(task.description);
     setDuration(task.duration);
+    // Smooth scroll to the top of the container
+    containerRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
   };
 
   // Function to save edited task
   const saveEditedTask = () => {
-    if (!title.trim() || !description.trim() || !duration.trim()) {
-      showModal("Please fill in all fields.");
+    let hasError = false;
+    if (!title.trim()) {
+      setTitleError("This field is required");
+      hasError = true;
+    }
+    if (!description.trim()) {
+      setDescriptionError("This field is required");
+      hasError = true;
+    }
+    if (!duration.trim()) {
+      setDurationError("This field is required");
+      hasError = true;
+    }
+
+    if (hasError) {
       return;
     }
 
@@ -102,10 +140,21 @@ const ToDoListApp = () => {
     setTitle('');
     setDescription('');
     setDuration('');
+    setTitleError('');
+    setDescriptionError('');
+    setDurationError('');
+  };
+
+  // Function to scroll to top
+  const scrollToTop = () => {
+    containerRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
   };
 
   return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 sm:p-8">
+      <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 sm:p-8">
         <div className="max-w-3xl mx-auto space-y-6">
           <h1 className="text-3xl sm:text-4xl font-bold text-center text-white">
             To-Do List
@@ -122,48 +171,75 @@ const ToDoListApp = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Input
-                  type="text"
-                  placeholder="Title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="bg-black/20 text-white border-gray-700 placeholder:text-gray-400"
-              />
-              <Textarea
-                  placeholder="Description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="bg-black/20 text-white border-gray-700 placeholder:text-gray-400"
-              />
-              <Input
-                  type="text"
-                  placeholder="Duration (e.g., 1 hour)"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  className="bg-black/20 text-white border-gray-700 placeholder:text-gray-400"
-              />
+              <div className="space-y-2">
+                <Input
+                    type="text"
+                    placeholder="Title"
+                    value={title}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      setTitleError('');
+                    }}
+                    className={cn(
+                        "bg-black/20 text-white border-gray-700 placeholder:text-gray-400",
+                        titleError && "border-red-500 focus-visible:ring-red-500"
+                    )}
+                />
+                {titleError && <p className="text-red-500 text-sm">{titleError}</p>}
+              </div>
+              <div className="space-y-2">
+                <Textarea
+                    placeholder="Description"
+                    value={description}
+                    onChange={(e) => {
+                      setDescription(e.target.value);
+                      setDescriptionError('');
+                    }}
+                    className={cn(
+                        "bg-black/20 text-white border-gray-700 placeholder:text-gray-400",
+                        descriptionError && "border-red-500 focus-visible:ring-red-500"
+                    )}
+                />
+                {descriptionError && <p className="text-red-500 text-sm">{descriptionError}</p>}
+              </div>
+              <div className="space-y-2">
+                <Input
+                    type="text"
+                    placeholder="Duration (e.g., 1 hour)"
+                    value={duration}
+                    onChange={(e) => {
+                      setDuration(e.target.value);
+                      setDurationError('');
+                    }}
+                    className={cn(
+                        "bg-black/20 text-white border-gray-700 placeholder:text-gray-400",
+                        durationError && "border-red-500 focus-visible:ring-red-500"
+                    )}
+                />
+                {durationError && <p className="text-red-500 text-sm">{durationError}</p>}
+              </div>
             </CardContent>
             <CardFooter className="flex gap-2">
               {editingTaskId ? (
                   <>
                     <Button
-                        onClick={saveEditedTask}
-                        className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 hover:text-blue-300 w-1/2"
-                    >
-                      Save
-                    </Button>
-                    <Button
                         onClick={discardEdit}
-                        className="bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 hover:text-gray-300 w-1/2"
+                        className="bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 hover:text-gray-300 w-1/2 cursor-pointer"
                     >
                       <XCircle className="mr-2 h-4 w-4" />
                       Discard
+                    </Button>
+                    <Button
+                        onClick={saveEditedTask}
+                        className="bg-[#0763E4] text-white hover:bg-[#0763E4]/80 w-1/2 cursor-pointer"
+                    >
+                      Save
                     </Button>
                   </>
               ) : (
                   <Button
                       onClick={addTask}
-                      className="bg-green-500/20 text-green-400 hover:bg-green-500/30 hover:text-green-300 w-full"
+                      className="bg-[#3B6AFF]/20 text-[#3B6AFF] hover:bg-[#0B2FD4]/20 hover:text-[#0B2FD4] w-full cursor-pointer"
                   >
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add Task
@@ -174,51 +250,84 @@ const ToDoListApp = () => {
 
           {/* Task List */}
           <div className="space-y-4">
-            {tasks.length === 0 ? (
-                <Card className="bg-white/5 backdrop-blur-md border border-white/10 shadow-lg">
-                  <CardContent className="text-center text-gray-400">
-                    No tasks yet. Add some tasks to get started!
-                  </CardContent>
-                </Card>
-            ) : (
-                tasks.map((task) => (
-                    <Card
-                        key={task.id}
-                        className="bg-white/5 backdrop-blur-md border border-white/10 shadow-lg"
-                    >
-                      <CardHeader>
-                        <CardTitle className="text-lg text-white">{task.title}</CardTitle>
-                        <CardDescription className="text-gray-400">{task.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="text-gray-300">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-gray-400" />
-                          <span>{task.duration}</span>
-                        </div>
+            <AnimatePresence>
+              {tasks.length === 0 ? (
+                  <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                  >
+                    <Card className="bg-white/5 backdrop-blur-md border border-white/10 shadow-lg">
+                      <CardContent className="text-center text-gray-400">
+                        No tasks yet. Add some tasks to get started!
                       </CardContent>
-                      <CardFooter className="flex justify-end gap-2">
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => startEditTask(task)}
-                            className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => removeTask(task.id)}
-                            className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </CardFooter>
                     </Card>
-                ))
-            )}
+                  </motion.div>
+              ) : (
+                  tasks.map((task) => (
+                      <motion.div
+                          key={task.id}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          transition={{ duration: 0.2 }}
+                          className="group relative"
+                      >
+                        <Card
+                            className="bg-white/5 backdrop-blur-md border border-white/10 shadow-lg"
+                        >
+                          <CardHeader>
+                            <CardTitle className="text-lg text-white">{task.title}</CardTitle>
+                            <CardDescription className="text-gray-400">{task.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent className="text-gray-300 cursor-pointer" onClick={() => startEditTask(task)}>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-gray-400" />
+                              <span>{task.duration}</span>
+                            </div>
+                          </CardContent>
+                          <CardFooter className="flex justify-end gap-2 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => startEditTask(task)}
+                                className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 cursor-pointer"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => removeTask(task.id)}
+                                className="text-red-400 hover:text-red-300 hover:bg-red-500/20 cursor-pointer"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      </motion.div>
+                  ))
+              )}
+            </AnimatePresence>
           </div>
         </div>
+
+        {/* Scroll To Top Button */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                  onClick={scrollToTop}
+                  className="fixed bottom-4 right-4 bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 hover:text-gray-300 cursor-pointer"
+              >
+                <ArrowUpCircle className="h-6 w-6" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="text-white">
+              <p>Scroll to top</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         {/* Custom Modal */}
         {isModalOpen && (
