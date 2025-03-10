@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -35,6 +35,24 @@ const ToDoListApp = () => {
   const [titleError, setTitleError] = useState('');
   const [descriptionError, setDescriptionError] = useState('');
   const [durationError, setDurationError] = useState('');
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
+
+  // Check scroll position and if there is scrollable content
+  useEffect(() => {
+    const handleScroll = () => {
+      // Only show button if the document is scrollable and the user has scrolled down
+      if (document.documentElement.scrollHeight > window.innerHeight && window.scrollY > 0) {
+        setShowScrollToTop(true);
+      } else {
+        setShowScrollToTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    // Call on mount in case content is already scrolled
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Function to add a new task
   const addTask = () => {
@@ -142,9 +160,7 @@ const ToDoListApp = () => {
   return (
       <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 sm:p-8">
         <div className="max-w-3xl mx-auto space-y-6">
-          <h1
-              className="text-3xl sm:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-[#A3A0FF] to-[#5E7BFF]"
-          >
+          <h1 className="text-3xl sm:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-[#A3A0FF] to-[#5E7BFF]">
             To-Do List
           </h1>
           <p className="text-center text-gray-400">Stay Organized, Get Things Done!</p>
@@ -228,7 +244,7 @@ const ToDoListApp = () => {
               ) : (
                   <Button
                       onClick={addTask}
-                      className="bg-[#3B6AFF]/20 text-[#3B6AFF] hover:bg-[#0B2FD4]/20 hover:text-[#0B2FD4] w-full cursor-pointer"
+                      className="bg-[#3B6AFF] text-white hover:bg-[#0B2FD4] w-full cursor-pointer"
                   >
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add Task
@@ -261,9 +277,7 @@ const ToDoListApp = () => {
                           exit={{ opacity: 0, y: 10 }}
                           transition={{ duration: 0.2 }}
                       >
-                        <Card
-                            className="bg-white/5 backdrop-blur-md border border-white/10 shadow-lg"
-                        >
+                        <Card className="bg-white/5 backdrop-blur-md border border-white/10 shadow-lg">
                           <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle className="text-lg text-white">{task.title}</CardTitle>
                             <div className="flex gap-2">
@@ -300,22 +314,23 @@ const ToDoListApp = () => {
         </div>
 
         {/* Scroll To Top Button */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                  onClick={scrollToTop}
-                  className="fixed bottom-4 right-4 bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 hover:text-gray-300 cursor-pointer"
-              >
-                <ArrowUpCircle className="h-6 w-6" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="text-white">
-              <p>Scroll to top</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
+        {showScrollToTop && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                      onClick={scrollToTop}
+                      className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 hover:text-gray-300 cursor-pointer px-4 py-2"
+                  >
+                    <ArrowUpCircle className="h-6 w-6" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="text-white">
+                  <p>Scroll to top</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+        )}
       </div>
   );
 };
